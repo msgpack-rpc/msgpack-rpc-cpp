@@ -20,6 +20,8 @@ Configure and install in the usual way:
     $ make
     $ sudo make install
 
+Configuration for OS X:
+    $ ./configure CXXFLAGS='-DMP_UNORDERED_MAP_BOOST -DMP_FUNCTIONAL_BOOST -DMP_MEMORY_BOOST -O3 -Wall  -I/usr/local/include -g -DCCLOG_LEVEL=10' --with-msgpack=/usr/local
 
 ## Usage
 
