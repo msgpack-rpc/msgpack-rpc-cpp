@@ -32,7 +32,7 @@ public:
 	unix_builder();
 	~unix_builder();
 
-	std::auto_ptr<client_transport> build(session_impl* s, const address& addr) const;
+	std::unique_ptr<client_transport> build(session_impl* s, const address& addr) const;
 };
 
 
@@ -43,7 +43,7 @@ public:
 
 	~unix_listener();
 
-	std::auto_ptr<server_transport> listen(server_impl* svr) const;
+	std::unique_ptr<server_transport> listen(server_impl* svr) const;
 
 private:
 	address m_addr;

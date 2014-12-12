@@ -124,7 +124,7 @@ template <typename T>
 T future::get(auto_zone* z)
 {
 	msgpack::object obj = get_impl();
-	*z = zone();
+	*z = std::move(zone());
 	return obj.as<T>();
 }
 
@@ -132,7 +132,7 @@ template <> inline
 void future::get<void>(auto_zone* z)
 {
 	msgpack::object obj = get_impl();
-	*z = zone();
+	*z = std::move(zone());
 	obj.as<msgpack::type::nil>();
 }
 

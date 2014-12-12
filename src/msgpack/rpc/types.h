@@ -25,7 +25,7 @@ namespace msgpack {
 namespace rpc {
 
 
-typedef std::auto_ptr<zone> auto_zone;
+typedef std::unique_ptr<zone> auto_zone;
 typedef mp::shared_ptr<zone> shared_zone;
 
 

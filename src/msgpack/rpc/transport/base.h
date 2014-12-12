@@ -57,7 +57,7 @@ namespace msgpack {
                 
                 // message_sendable interface
                 void send_data(sbuffer* sbuf);
-                void send_data(std::auto_ptr<vreflife> vbufife);
+                void send_data(std::unique_ptr<vreflife> vbufife);
                 
                 // mp::wavy::handler interface
                 void on_read(mp::wavy::event& e);
@@ -101,11 +101,11 @@ namespace msgpack {
                 // message_sendable interface
                 class response_sender;
                 void send_data(const sockaddr* addrbuf, socklen_t addrlen, sbuffer* sbuf);
-                void send_data(const sockaddr* addrbuf, socklen_t addrlen, std::auto_ptr<vreflife> vbuf);
+                void send_data(const sockaddr* addrbuf, socklen_t addrlen, std::unique_ptr<vreflife> vbuf);
                 
                 // connected dgram
                 void send_data(sbuffer* sbuf);
-                void send_data(std::auto_ptr<vreflife> vbuf);
+                void send_data(std::unique_ptr<vreflife> vbuf);
                 
                 // mp::wavy::handler interface
                 void on_read(mp::wavy::event& e);
@@ -178,9 +178,11 @@ namespace msgpack {
             }
             
             template <typename MixIn>
-            inline void stream_handler<MixIn>::send_data(std::auto_ptr<vreflife> vbuf)
+            inline void stream_handler<MixIn>::send_data(std::unique_ptr<vreflife> vbuf)
             {
-                m_loop->writev(fd(), vbuf->vector(), vbuf->vector_size(), vbuf);
+                std::auto_ptr<vreflife> vbuf_auto = std::auto_ptr<vreflife>(vbuf.release());
+
+                m_loop->writev(fd(), vbuf->vector(), vbuf->vector_size(), vbuf_auto);
             }
             
             
@@ -193,7 +195,7 @@ namespace msgpack {
             }
             
             template <typename MixIn>
-            inline void dgram_handler<MixIn>::send_data(const sockaddr* addrbuf, socklen_t addrlen, std::auto_ptr<vreflife> vbuf)
+            inline void dgram_handler<MixIn>::send_data(const sockaddr* addrbuf, socklen_t addrlen, std::unique_ptr<vreflife> vbuf)
             {
                 // FIXME fd is non-blocking mode
                 // FIXME check errno == EAGAIN
@@ -216,10 +218,10 @@ namespace msgpack {
             }
             
             template <typename MixIn>
-            inline void dgram_handler<MixIn>::send_data(std::auto_ptr<vreflife> vbuf)
+            inline void dgram_handler<MixIn>::send_data(std::unique_ptr<vreflife> vbuf)
             {
                 //// FIXME?
-                //m_loop->writev(fd(), vbuf->vector(), vbuf->vector_size(), z);
+                //m_loop->writev(fd(), vbuf->vector(), vbuf->vector_size(), std::move(z));
                 struct msghdr msg;
                 memset(&msg, 0, sizeof(msg));
                 msg.msg_iov = const_cast<struct iovec*>(vbuf->vector());
@@ -239,7 +241,7 @@ namespace msgpack {
                         msg_request<object, object> req;
                         msg.convert(&req);
                         static_cast<MixIn*>(this)->on_request(
-                                                              req.msgid, req.method, req.param, z);
+                                                              req.msgid, req.method, req.param, std::move(z));
                     }
                         break;
                         
@@ -247,7 +249,7 @@ namespace msgpack {
                         msg_response<object, object> res;
                         msg.convert(&res);
                         static_cast<MixIn*>(this)->on_response(
-                                                               res.msgid, res.result, res.error, z);
+                                                               res.msgid, res.result, res.error, std::move(z));
                     }
                         break;
                         
@@ -255,7 +257,7 @@ namespace msgpack {
                         msg_notify<object, object> req;
                         msg.convert(&req);
                         static_cast<MixIn*>(this)->on_notify(
-                                                             req.method, req.param, z);
+                                                             req.method, req.param, std::move(z));
                     }
                         break;
                         
@@ -277,7 +279,7 @@ namespace msgpack {
                         msg_request<object, object> req;
                         msg.convert(&req);
                         static_cast<MixIn*>(this)->on_request(
-                                                              req.msgid, req.method, req.param, z,
+                                                              req.msgid, req.method, req.param, std::move(z),
                                                               addrbuf, addrlen);
                     }
                         break;
@@ -286,7 +288,7 @@ namespace msgpack {
                         msg_response<object, object> res;
                         msg.convert(&res);
                         static_cast<MixIn*>(this)->on_response(
-                                                               res.msgid, res.result, res.error, z);
+                                                               res.msgid, res.result, res.error, std::move(z));
                     }
                         break;
                         
@@ -294,7 +296,7 @@ namespace msgpack {
                         msg_notify<object, object> req;
                         msg.convert(&req);
                         static_cast<MixIn*>(this)->on_notify(
-                                                             req.method, req.param, z);
+                                                             req.method, req.param, std::move(z));
                     }
                         break;
                         
@@ -319,11 +321,11 @@ namespace msgpack {
                         //} else {
                         //	e.next();
                         //}
-                        //stream_handler<MixIn>::on_message(msg, z);
+                        //stream_handler<MixIn>::on_message(msg, std::move(z));
                         //return;
                         
                         // FIXME
-                        stream_handler<MixIn>::on_message(msg, z);
+                        stream_handler<MixIn>::on_message(msg, std::move(z));
                         if(m_pac.nonparsed_size() > 0) {
                             continue;
                         }
@@ -395,7 +397,7 @@ namespace msgpack {
                 result.zone()->push_finalizer(&::free, buffer.data);
                 buffer.release();
                 
-                dgram_handler<MixIn>::on_message(result.get(), result.zone(), (struct sockaddr*)&addrbuf, addrlen);
+                dgram_handler<MixIn>::on_message(result.get(), std::move(result.zone()), (struct sockaddr*)&addrbuf, addrlen);
                 
             } catch(msgpack::type_error& ex) {
                 LOG_ERROR("connection: type error");
@@ -431,7 +433,7 @@ namespace msgpack {
                 ~response_sender();
                 
                 void send_data(sbuffer* sbuf);
-                void send_data(std::auto_ptr<vreflife> vbuf);
+                void send_data(std::unique_ptr<vreflife> vbuf);
                 
             private:
                 mp::shared_ptr<dgram_handler<MixIn> > m_handler;
@@ -466,9 +468,9 @@ namespace msgpack {
             }
             
             template <typename MixIn>
-            void dgram_handler<MixIn>::response_sender::send_data(std::auto_ptr<vreflife> vbuf)
+            void dgram_handler<MixIn>::response_sender::send_data(std::unique_ptr<vreflife> vbuf)
             {
-                m_handler->send_data((struct sockaddr*)&m_addrbuf, m_addrlen, vbuf);
+                m_handler->send_data((struct sockaddr*)&m_addrbuf, m_addrlen, std::move(vbuf));
             }
             
             template <typename MixIn>

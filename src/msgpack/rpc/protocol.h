@@ -37,7 +37,35 @@ static const message_type_t NOTIFY   = 2;
 static const error_type_t NO_METHOD_ERROR = 0x01;
 static const error_type_t ARGUMENT_ERROR  = 0x02;
 
+//The following tuple_type struct are imported from msgpack C++03 adapters (for C++11 compat)
+template <typename T>
+struct tuple_type {
+    typedef T type;
+    typedef T value_type;
+    typedef T& reference;
+    typedef const T& const_reference;
+    typedef const T& transparent_reference;
+};
 
+template <typename T>
+struct tuple_type<T&> {
+    typedef T type;
+    typedef T& value_type;
+    typedef T& reference;
+    typedef const T& const_reference;
+    typedef T& transparent_reference;
+};
+
+template <typename T>
+struct tuple_type<const T&> {
+    typedef T type;
+    typedef T& value_type;
+    typedef T& reference;
+    typedef const T& const_reference;
+    typedef const T& transparent_reference;
+};
+
+    
 struct msg_rpc {
 	msg_rpc() { }
 
@@ -58,7 +86,7 @@ struct msg_request {
 
 	msg_request(
 			Method method,
-			typename msgpack::type::tuple_type<Parameter>::transparent_reference param,
+			typename tuple_type<Parameter>::transparent_reference param,
 			msgid_t msgid) :
 		type(REQUEST),
 		msgid(msgid),
@@ -80,8 +108,8 @@ struct msg_response {
 		msgid(0) { }
 
 	msg_response(
-			typename msgpack::type::tuple_type<Result>::transparent_reference result,
-			typename msgpack::type::tuple_type<Error >::transparent_reference error,
+			typename tuple_type<Result>::transparent_reference result,
+			typename tuple_type<Error >::transparent_reference error,
 			msgid_t msgid) :
 		type(RESPONSE),
 		msgid(msgid),
@@ -103,7 +131,7 @@ struct msg_notify {
 
 	msg_notify(
 			Method method,
-			typename msgpack::type::tuple_type<Parameter>::transparent_reference param) :
+			typename tuple_type<Parameter>::transparent_reference param) :
 		type(NOTIFY),
 		method(method),
 		param(param) { }

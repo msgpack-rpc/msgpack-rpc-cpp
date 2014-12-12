@@ -30,7 +30,7 @@ public:
 	request_impl(shared_message_sendable ms, msgid_t msgid,
 			object method, object params, auto_zone z) :
 		m_ms(ms), m_msgid(msgid),
-		m_method(method), m_params(params), m_zone(z) { }
+    m_method(method), m_params(params), m_zone(std::move(z)) { }
 
 	~request_impl() { }
 
@@ -45,11 +45,11 @@ public:
 		return !m_ms;
 	}
 
-	void send_data(auto_vreflife vbuf)
+	void send_data(auto_vreflife vbuf /**/)
 	{
 		shared_message_sendable ms = m_ms;
 		if(!ms) { return; }
-		ms->send_data(vbuf);
+		ms->send_data(std::move(vbuf));
 		m_ms.reset();
 	}
 

@@ -67,7 +67,7 @@ private:
 
 	loop m_loop;
 
-	std::auto_ptr<builder> m_builder;
+	std::unique_ptr<builder> m_builder;
 
 private:
 	session_pool_impl(const session_pool_impl&);
