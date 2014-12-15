@@ -41,15 +41,16 @@ void throw_exception(future_impl* f)
 {
 	object err = f->error();
 
-	if(err.type == msgpack::type::RAW &&
-			err.via.raw.ptr == TIMEOUT_ERROR_PTR) {
-		throw timeout_error();
-
-	} else if(err.type == msgpack::type::RAW &&
-			err.via.raw.ptr == CONNECT_ERROR_PTR) {
-		throw connect_error();
-
-	} else if(err.type == msgpack::type::POSITIVE_INTEGER &&
+//	if(err.type == msgpack::type::RAW &&
+//			err.via.raw.ptr == TIMEOUT_ERROR_PTR) {
+//		throw timeout_error();
+//
+//	} else if(err.type == msgpack::type::RAW &&
+//			err.via.raw.ptr == CONNECT_ERROR_PTR) {
+//		throw connect_error();
+//
+//	} else
+    if(err.type == msgpack::type::POSITIVE_INTEGER &&
 			err.via.u64 == NO_METHOD_ERROR) {
 		throw no_method_error();
 

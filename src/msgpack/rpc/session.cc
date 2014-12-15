@@ -59,13 +59,13 @@ future session_impl::send_request_impl(msgid_t msgid, sbuffer* sbuf)
 	return future(f);
 }
 
-future session_impl::send_request_impl(msgid_t msgid, auto_vreflife vbuf)
+future session_impl::send_request_impl(msgid_t msgid, auto_vreflife vbuf /**/)
 {
 	LOG_DEBUG("sending... msgid=",msgid);
 	shared_future f(new future_impl(shared_from_this(), m_loop));
 	m_reqtable.insert(msgid, f);
 
-	m_tran->send_data(vbuf);
+	m_tran->send_data(std::move(vbuf));
 
 	return future(f);
 }
@@ -75,9 +75,9 @@ void session_impl::send_notify_impl(sbuffer* sbuf)
 	m_tran->send_data(sbuf);
 }
 
-void session_impl::send_notify_impl(auto_vreflife vbuf)
+void session_impl::send_notify_impl(auto_vreflife vbuf /**/)
 {
-	m_tran->send_data(vbuf);
+	m_tran->send_data(std::move(vbuf));
 }
 
 msgid_t session_impl::next_msgid()
@@ -127,7 +127,7 @@ void session_impl::on_response(msgid_t msgid,
 		LOG_DEBUG("no entry on request table for msgid=",msgid);
 		return;
 	}
-	f->set_result(result, error, z);
+    f->set_result(result, error, std::move(z));
 }
 
 
@@ -146,8 +146,8 @@ void session::set_timeout(unsigned int sec)
 unsigned int session::get_timeout() const
 	{ return m_pimpl->get_timeout(); }
 
-future session::send_request_impl(msgid_t msgid, std::auto_ptr<with_shared_zone<vrefbuffer> > vbuf)
-	{ return m_pimpl->send_request_impl(msgid, vbuf); }
+future session::send_request_impl(msgid_t msgid, std::unique_ptr<with_shared_zone<vrefbuffer> > vbuf /**/)
+	{ return m_pimpl->send_request_impl(msgid, std::move(vbuf)); }
 
 future session::send_request_impl(msgid_t msgid, sbuffer* sbuf)
 	{ return m_pimpl->send_request_impl(msgid, sbuf); }
@@ -155,8 +155,8 @@ future session::send_request_impl(msgid_t msgid, sbuffer* sbuf)
 void session::send_notify_impl(sbuffer* sbuf)
 	{ return m_pimpl->send_notify_impl(sbuf); }
 
-void session::send_notify_impl(std::auto_ptr<with_shared_zone<vrefbuffer> > vbuf)
-	{ return m_pimpl->send_notify_impl(vbuf); }
+void session::send_notify_impl(std::unique_ptr<with_shared_zone<vrefbuffer> > vbuf /**/)
+	{ return m_pimpl->send_notify_impl(std::move(vbuf)); }
 
 msgid_t session::next_msgid()
 	{ return m_pimpl->next_msgid(); }

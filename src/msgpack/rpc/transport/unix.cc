@@ -68,7 +68,7 @@ public:
 
 public:
 	void send_data(sbuffer* sbuf);
-	void send_data(auto_vreflife vbuf);
+	void send_data(auto_vreflife vbuf /**/);
 
 private:
 	session_impl* m_session;
@@ -93,7 +93,7 @@ void client_socket::on_response(msgid_t msgid,
 	if(!s) {
 		throw closed_exception();
 	}
-	s->on_response(msgid, result, error, z);
+	s->on_response(msgid, result, error, std::move(z));
 }
 
 
@@ -131,9 +131,9 @@ void client_transport::send_data(sbuffer* sbuf)
 	m_sock->send_data(sbuf);
 }
 
-void client_transport::send_data(auto_vreflife vbuf)
+void client_transport::send_data(auto_vreflife vbuf /**/)
 {
-	m_sock->send_data(vbuf);
+	m_sock->send_data(std::move(vbuf));
 }
 
 
@@ -191,7 +191,7 @@ void server_socket::on_request(
 	if(!svr) {
 		throw closed_exception();
 	}
-	svr->on_request(get_response_sender(), msgid, method, params, z);
+	svr->on_request(get_response_sender(), msgid, method, params, std::move(z));
 }
 
 void server_socket::on_notify(
@@ -201,7 +201,7 @@ void server_socket::on_notify(
 	if(!svr) {
 		throw closed_exception();
 	}
-	svr->on_notify(method, params, z);
+	svr->on_notify(method, params, std::move(z));
 }
 
 
@@ -269,10 +269,10 @@ unix_builder::unix_builder() { }
 
 unix_builder::~unix_builder() { }
 
-std::auto_ptr<client_transport> unix_builder::build(
+std::unique_ptr<client_transport> unix_builder::build(
 		session_impl* s, const address& addr) const
 {
-	return std::auto_ptr<client_transport>(
+	return std::unique_ptr<client_transport>(
 			new transport::unix::client_transport(s, addr, *this));
 }
 
@@ -285,9 +285,9 @@ unix_listener::unix_listener(const address& addr) :
 
 unix_listener::~unix_listener() { }
 
-std::auto_ptr<server_transport> unix_listener::listen(server_impl* svr) const
+std::unique_ptr<server_transport> unix_listener::listen(server_impl* svr) const
 {
-	return std::auto_ptr<server_transport>(
+	return std::unique_ptr<server_transport>(
 			new transport::unix::server_transport(svr, m_addr));
 }
 

@@ -94,7 +94,7 @@ void future_impl::set_result(object result, object error, auto_zone z)
 	mp::pthread_scoped_lock lk(m_mutex);
 	m_result = result;
 	m_error = error;
-	m_zone = z;
+    m_zone = std::move(z);
 	m_session.reset();
 
 	m_cond.broadcast();

@@ -56,7 +56,7 @@ void server_impl::on_request(
 {
 	shared_request sr(new request_impl(
 			ms, msgid,
-			method, params, z));
+                                       method, params, std::move(z)));
 	m_dp->dispatch(request(sr));
 }
 
@@ -65,7 +65,7 @@ void server_impl::on_notify(
 {
 	shared_request sr(new request_impl(
 			shared_message_sendable(), 0,
-			method, params, z));
+                                       method, params, std::move(z)));
 	m_dp->dispatch(request(sr));
 }
 

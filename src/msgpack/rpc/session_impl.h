@@ -64,10 +64,10 @@ public:
 
 public:
 	future send_request_impl(msgid_t msgid, sbuffer* sbuf);
-	future send_request_impl(msgid_t msgid, auto_vreflife vbuf);
+	future send_request_impl(msgid_t msgid, auto_vreflife vbuf /**/);
 
 	void send_notify_impl(sbuffer* sbuf);
-	void send_notify_impl(auto_vreflife vbuf);
+	void send_notify_impl(auto_vreflife vbuf /**/);
 
 public:
 	void on_response(msgid_t msgid,
@@ -83,7 +83,7 @@ private:
 
 	loop m_loop;
 
-	std::auto_ptr<client_transport> m_tran;
+	std::unique_ptr<client_transport> m_tran;
 
 	msgid_t m_msgid_rr;
 	reqtable m_reqtable;

@@ -61,7 +61,7 @@ public:
 
 public:
 	void send_data(sbuffer* sbuf);
-	void send_data(auto_vreflife vbuf);
+	void send_data(auto_vreflife vbuf /**/);
 
 private:
 	mp::shared_ptr<client_socket> m_sock;
@@ -86,7 +86,7 @@ void client_socket::on_response(msgid_t msgid,
 		throw closed_exception();
 	}
 	s->on_response(
-			msgid, result, error, z);
+			msgid, result, error, std::move(z));
 }
 
 
@@ -123,9 +123,9 @@ void client_transport::send_data(sbuffer* sbuf)
 	m_sock->send_data(sbuf);
 }
 
-void client_transport::send_data(auto_vreflife vbuf)
+void client_transport::send_data(auto_vreflife vbuf /**/)
 {
-	m_sock->send_data(vbuf);
+	m_sock->send_data(std::move(vbuf));
 }
 
 
@@ -183,7 +183,7 @@ void server_socket::on_request(
 		throw closed_exception();
 	}
 	svr->on_request(get_response_sender(addrbuf, addrlen),
-			msgid, method, params, z);
+			msgid, method, params, std::move(z));
 }
 
 void server_socket::on_notify(
@@ -193,7 +193,7 @@ void server_socket::on_notify(
 	if(!svr) {
 		throw closed_exception();
 	}
-	svr->on_notify(method, params, z);
+	svr->on_notify(method, params, std::move(z));
 }
 
 
@@ -244,9 +244,9 @@ udp_builder::udp_builder() { }
 
 udp_builder::~udp_builder() { }
 
-std::auto_ptr<client_transport> udp_builder::build(session_impl* s, const address& addr) const
+std::unique_ptr<client_transport> udp_builder::build(session_impl* s, const address& addr) const
 {
-	return std::auto_ptr<client_transport>(new transport::udp::client_transport(s, addr, *this));
+	return std::unique_ptr<client_transport>(new transport::udp::client_transport(s, addr, *this));
 }
 
 
@@ -258,9 +258,9 @@ udp_listener::udp_listener(const address& addr) :
 
 udp_listener::~udp_listener() { }
 
-std::auto_ptr<server_transport> udp_listener::listen(server_impl* svr) const
+std::unique_ptr<server_transport> udp_listener::listen(server_impl* svr) const
 {
-	return std::auto_ptr<server_transport>(
+	return std::unique_ptr<server_transport>(
 			new transport::udp::server_transport(svr, m_addr));
 }
 

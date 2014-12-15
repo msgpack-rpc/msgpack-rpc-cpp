@@ -49,14 +49,14 @@ protected:
 			const Parameter& param, shared_zone msglife);
 
 	future send_request_impl(msgid_t msgid, sbuffer* sbuf);
-	future send_request_impl(msgid_t msgid, std::auto_ptr<with_shared_zone<vrefbuffer> > vbuf);
+	future send_request_impl(msgid_t msgid, std::unique_ptr<with_shared_zone<vrefbuffer> > vbuf /**/);
 
 	template <typename Method, typename Parameter>
 	void send_notify(Method method,
 			const Parameter& param, shared_zone msglife);
 
 	void send_notify_impl(sbuffer* sbuf);
-	void send_notify_impl(std::auto_ptr<with_shared_zone<vrefbuffer> > vbuf);
+	void send_notify_impl(std::unique_ptr<with_shared_zone<vrefbuffer> > vbuf /**/);
 
 	friend class caller<session>;
 
@@ -79,10 +79,10 @@ future session::send_request(Method method,
 	msg_request<Method, Parameter> msgreq(method, param, msgid);
 
 	if(msglife) {
-		std::auto_ptr<with_shared_zone<vrefbuffer> > vbuf(
+		std::unique_ptr<with_shared_zone<vrefbuffer> > vbuf(
 				new with_shared_zone<vrefbuffer>(msglife));
 		msgpack::pack(*vbuf, msgreq);
-		return send_request_impl(msgid, vbuf);
+        return send_request_impl(msgid, std::move(vbuf));
 
 	} else {
 		msgpack::sbuffer sbuf;
@@ -98,10 +98,10 @@ void session::send_notify(Method method,
 	msg_notify<Method, Parameter> msgreq(method, param);
 
 	if(msglife) {
-		std::auto_ptr<with_shared_zone<vrefbuffer> > vbuf(
+		std::unique_ptr<with_shared_zone<vrefbuffer> > vbuf(
 				new with_shared_zone<vrefbuffer>(msglife));
 		msgpack::pack(*vbuf, msgreq);
-		return send_notify_impl(vbuf);
+		return send_notify_impl(std::move(vbuf));
 
 	} else {
 		msgpack::sbuffer sbuf;
