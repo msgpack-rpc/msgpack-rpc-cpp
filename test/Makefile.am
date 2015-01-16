@@ -5,7 +5,7 @@ AM_C_CPPFLAGS = -I../src
 AM_LDFLAGS = \
 		../src/cclog/libcclog.la \
 		../src/msgpack/rpc/libmsgpack-rpc.la \
-		-lmpio -msgpack
+		-lmpio -lmsgpack
 
 check_HEADERS = \
 		echo_server.h
