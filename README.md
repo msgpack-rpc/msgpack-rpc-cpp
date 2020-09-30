@@ -7,7 +7,7 @@ I recommend to check the repository instead:
 
 https://github.com/jubatus/jubatus-msgpack-rpc/tree/master/cpp
  
-this repository will be very helpfull
+this repository will be very helpful
 
 
 Thanks, Sadayuki Furuhashi
