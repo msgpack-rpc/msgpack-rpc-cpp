@@ -1,4 +1,4 @@
-# See [jubatus-msgpack-rpc/cpp](https://github.com/jubatus/jubatus-msgpack-rpc/tree/master/cpp) instead
+# See [jubatus-msgpack-rpc/cpp](https://github.com/jubatus/jubatus-msgpack-rpc/tree/master/cpp) instead:
 
 This msgpack-rpc-cpp repository is suspended.
 
