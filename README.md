@@ -6,6 +6,8 @@ But thanks to an open-source project called [Jubatus](http://jubat.us/en/), msgp
 I recommend to check the repository instead:
 
 https://github.com/jubatus/jubatus-msgpack-rpc/tree/master/cpp
+ 
+this repository will be very helpfull
 
 
 Thanks, Sadayuki Furuhashi
